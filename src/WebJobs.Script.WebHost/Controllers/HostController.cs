@@ -133,12 +133,19 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Controllers
         [Authorize(Policy = PolicyNames.AdminAuthLevel)]
         public async Task<IActionResult> SyncTriggers()
         {
-            (var success, var error) = await _functionsManager.TrySyncTriggers();
+            try
+            {
+                (var success, var error) = await _functionsManager.TrySyncTriggers();
 
-            // Return a dummy body to make it valid in ARM template action evaluation
-            return success
-                ? Ok(new { status = "success" })
-                : StatusCode(StatusCodes.Status500InternalServerError, new { status = error });
+                // Return a dummy body to make it valid in ARM template action evaluation
+                return success
+                    ? Ok(new { status = "success" })
+                    : StatusCode(StatusCodes.Status500InternalServerError, new { status = error });
+                }
+            catch (System.Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, Utility.FlattenException(e));
+            }
         }
 
         [HttpPost]
